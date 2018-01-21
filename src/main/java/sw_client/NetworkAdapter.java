@@ -63,6 +63,7 @@ class NetworkAdapter {
                 formParam("user_name", Configuration.USERNAME).
                 formParam("user_addr", Configuration.USERADDR).
                 formParam("key", Configuration.KEY).
+                formParam("client_version", Configuration.VERSION).
                 formParam("msg", msg).
                 formParam("filename", "debug.zip").
                 multiPart("file", file, "application/octet-stream").
@@ -90,9 +91,12 @@ class NetworkAdapter {
         try {
             Response res = given().
                     formParam("user_name", Configuration.USERNAME).
+                    formParam("user_addr", Configuration.USERADDR).
+                    formParam("key", Configuration.KEY).
+                    formParam("client_version", Configuration.VERSION).
+                    formParam("msg", "stat upload").
                     formParam("client_startdate", startdate).
                     formParam("client_enddate", enddate).
-                    formParam("client_version", Configuration.VERSION).
                     formParam("callback_id", callback_id).
                     post(statUrl);
             if(res.getStatusCode() == 200){
@@ -113,6 +117,8 @@ class NetworkAdapter {
                     formParam("user_name", Configuration.USERNAME).
                     formParam("user_addr", Configuration.USERADDR).
                     formParam("key", Configuration.KEY).
+                    formParam("client_version", Configuration.VERSION).
+                    formParam("msg", "image recognition").
                     formParam("filename", "sw_screenshot").
                     multiPart("file", new File(imageName), "image/jpg").
                     //multiPart("file", "image.jpg", bytes, "image/jpg").

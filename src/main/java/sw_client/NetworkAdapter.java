@@ -1,24 +1,19 @@
 package sw_client;
 
-import io.restassured.internal.util.IOUtils;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import javax.swing.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 import static io.restassured.RestAssured.*;
 
 /**
  * Created by Starforge on 31.10.2017.
  */
-public class NetworkAdapter {
+class NetworkAdapter {
     private static final Logger log = LogManager.getLogger("com.adbmanager.log4j2");
 
     private static String srvUrl = "";
@@ -27,8 +22,8 @@ public class NetworkAdapter {
     private static String reportUrl = srvUrl + "/report";
     private static String chkverUrl = srvUrl + "/chkver";
     private static String statUrl = srvUrl + "/stat";
-    static String staticUrl = "http://217.71.231.9:30001/static/";
-    static String updUrl = "http://217.71.231.9:30001/static/SWHlp.jar";
+    static String staticUrl = srvUrl + "/static/";
+    static String updUrl = srvUrl + "/static/SWHlp.jar";
     static String callback = "";
 
     static void initPath(){
@@ -41,6 +36,8 @@ public class NetworkAdapter {
         reportUrl = srvUrl + "/report";
         chkverUrl = srvUrl + "/chkver";
         statUrl = srvUrl + "/stat";
+        staticUrl = srvUrl + "/static/";
+        updUrl = srvUrl + "/static/SWHlp.jar";
     }
 
     static Boolean checkNewVersion(){
@@ -77,6 +74,7 @@ public class NetworkAdapter {
             return false;
         }
     }
+
 
     static String getExternalIP(){
         try {

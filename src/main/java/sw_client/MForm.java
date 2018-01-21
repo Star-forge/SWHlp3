@@ -6,6 +6,8 @@ import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,9 +19,7 @@ import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static sw_client.Image.origScrName;
-import static sw_client.Image.resizedScrName;
-import static sw_client.Image.rotatedScrName;
+import static sw_client.Image.*;
 
 /**
  * Created by Starforge on 31.12.2017.
@@ -59,6 +59,7 @@ public class MForm {
         else
             Configuration.PAUSE = stop;
         form.start_stopButton.setText(Configuration.PAUSE?"СТАРТ":"СТОП");
+        form.status.setText("*** " + (Configuration.PAUSE?"Бот приостановлен!":"Бот запущен!"));
         toLog("*** " + (Configuration.PAUSE?"Бот приостановлен!":"Бот запущен!"));
     }
 
@@ -147,18 +148,18 @@ public class MForm {
             log.info("*** ЗАПУСК ПРОГРАММЫ ***");
             Configuration.loadParams();
             NetworkAdapter.initPath();
-            if(NetworkAdapter.checkNewVersion() && Configuration.UPDATE){
-                JOptionPane.showMessageDialog(null,
-                        "Ваша версия устарела. Необходимо обновление!");
-                Updater up = new Updater(NetworkAdapter.updUrl);
-                Updater.update();
-                System.exit(0);
-            }
+//            if(NetworkAdapter.checkNewVersion() && Configuration.UPDATE){
+//                JOptionPane.showMessageDialog(null,
+//                        "Ваша версия устарела. Необходимо обновление!");
+//                Updater up = new Updater(NetworkAdapter.updUrl);
+//                Updater.update();
+//                System.exit(0);
+//            }
 
-            JFrame frame = new JFrame("SWSA HELPER v" + Configuration.VERSION);
+            JFrame frame = new JFrame(Configuration.wndName);
             MForm form = new MForm();
             frame.setContentPane(form.mainPanel);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
             form.start_stopButton.setText(Configuration.PAUSE?"СТАРТ":"СТОП");
             form.adbReconnectCheckBox.setSelected(Configuration.RECONNECT>0?true:false);
@@ -167,6 +168,19 @@ public class MForm {
             form.viewOnlyCheckBox.setSelected(Configuration.VIEW_ONLY_MODE);
             form.waitEnergyTextField.setText(String.valueOf(Configuration.SLEEP_TIMEOUT_WITHOUT_ENERGY));
             form.ipTextField.setText(String.valueOf(Configuration.DEVICE_IP_ADDR));
+
+            frame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    if(NetworkAdapter.checkNewVersion() && Configuration.UPDATE){
+                        new Updater(NetworkAdapter.updUrl);
+                        Updater.update();
+                        System.exit(0);
+                    }
+                    System.exit(0);
+                }
+            });
+
 
             frame.pack();
             frame.setVisible(true);
@@ -177,8 +191,8 @@ public class MForm {
             statusChecker(form);
             NetworkAdapter.sendStat("", "", "");
             //Main Function
-            String startDateTime = "";
-            String endDateTime = "";
+            String startDateTime;
+            String endDateTime;
             while (true) {
                 try {
                     startDateTime = getDatetimeNowInPythonFormat();
@@ -334,6 +348,12 @@ public class MForm {
         }
     }
 
+    private static void changeImageSize(){
+        int tmp = Image.getHeight();
+        Image.setHeight(Image.getWidth());
+        Image.setWidth(tmp);
+    }
+
     private static void mainFunction() throws Exception, ServerException {
 
         //Image.delete();
@@ -349,14 +369,19 @@ public class MForm {
         }
         if(!Image.getReadFromFile()) return;
         Image.createCopy(origScrName);
-        if(Image.getWidth() <= Image.getHeight() && (Configuration.SCREEN_ROTATE == 0 || Configuration.SCREEN_ROTATE == 180)) {
-            JOptionPane.showMessageDialog(null, "Ваше устройство неправильно формирует изображение.\n" +
-                    "" + Image.getWidth() + " : " + Image.getHeight() +
-                    "C текущими настройками продолжение, скорее всего, невозможно.\n" +
-                    "Рекомендуется выставить в настройках SCREEN_ROTATE, равное 90 или 270.\n" +
-                    "Работа приостановлена!");
-            reportAdmin("rotated image");
+//        if(Image.getWidth() <= Image.getHeight() && (Configuration.SCREEN_ROTATE == 0 || Configuration.SCREEN_ROTATE == 180)) {
+//            JOptionPane.showMessageDialog(null, "Ваше устройство неправильно формирует изображение.\n" +
+//                    "" + Image.getWidth() + " : " + Image.getHeight() +
+//                    "C текущими настройками продолжение, скорее всего, невозможно.\n" +
+//                    "Рекомендуется выставить в настройках SCREEN_ROTATE, равное 90 или 270.\n" +
+//                    "Работа приостановлена!");
+//            reportAdmin("rotated image");
+//        }
+
+        if(Image.getWidth() < Image.getHeight()) {
+            changeImageSize();
         }
+
         if(Configuration.SCREEN_ROTATE != 0) {
             Image.rotate(Configuration.SCREEN_ROTATE);
             Image.createCopy(rotatedScrName);
@@ -439,6 +464,8 @@ public class MForm {
     }
 
     private static void reviveReaction() {
+        toLog("Воскрешения за кристаллы - НЕ будет.");
+        toLog("Нажатие кнопки 'НЕТ'.");
         do_adb_tap(65, 65);
     }
 
@@ -473,7 +500,10 @@ public class MForm {
     }
 
     private static void sellReaction() {
-        do_adb_tap(37, 60);
+        if(Configuration.SELL_ALL_RUNES)
+            do_adb_tap(39, 60);
+        else
+            do_adb_tap(61, 60);
     }
 
     private static void energyFullReaction() {
@@ -500,6 +530,7 @@ public class MForm {
             toLog(String.format("*** Энергия закончилась - ожидание секунд: %s", timeout));
             IntStream.range(0, timeout).forEachOrdered(n -> {
                 if (!Configuration.PAUSE) {
+                    form.setStatus("Ожидание энергии: " + (((timeout-n)/3600)%60)+":"+(((timeout-n)/60)%60)+":"+((timeout-n)%60));
                     if (n % 5 == 0)
                         log.info(String.format("*** Энергия закончилась - ожидание секунд: [%05d/%05d]", n, timeout));
                     try {
@@ -527,8 +558,8 @@ public class MForm {
         toLog("*** Ожидание подключения к устройству");
         try{
             AdbController.runCmd("adb wait-for-device");
-            String tap_x = ""+(Image.getWidth() * x / 100);
-            String tap_y = ""+(Image.getHeight() * y / 100);
+            String tap_x = ""+((Image.getWidth() * x / 100) + Configuration.SCREEN_MOVE_X);
+            String tap_y = ""+((Image.getHeight() * y / 100) + Configuration.SCREEN_MOVE_Y);
             String shellCmdText = "adb shell input touchscreen tap " + tap_x + ' ' + tap_y + "";
             AdbController.runCmd(shellCmdText);
             toLog("*** Клик выполнен о координатам: ["+ tap_x + "," + tap_y + "]");

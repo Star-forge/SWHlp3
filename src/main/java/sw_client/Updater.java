@@ -31,7 +31,7 @@ public class Updater extends JFrame{
     public Updater(String url){
         this.setPreferredSize(new Dimension(300, 80));
         this.setSize(new Dimension(300, 80));
-        this.setTitle("Обновление SW Helper");
+        this.setTitle("Обновление SWSA HELPER");
         JProgressBar progress = new JProgressBar(0, 100);
         progress.setValue(0);
         progress.setStringPainted(true);
@@ -83,7 +83,8 @@ public class Updater extends JFrame{
                 in.close();
             }
         }catch(IOException e){
-            e.printStackTrace();
+            log.error("Обновление невозможно!", e);
+            System.exit(-1);
         }
     }
 
@@ -114,10 +115,10 @@ public class Updater extends JFrame{
         String target =  source+"."+Configuration.VERSION+".bak";
         copyFile(source, target);
         downloadLatestVersion(source);
-        try {
-            Runtime.getRuntime().exec("java -jar "+source);
-        } catch (IOException e) {
-           log.error("Ошибка запуска обновленной программы %s%n", e);
-        }
+//        try {
+//            Runtime.getRuntime().exec("java -jar "+source);
+//        } catch (IOException e) {
+//           log.error("Ошибка запуска обновленной программы %s%n", e);
+//        }
     }
 }

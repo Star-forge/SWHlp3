@@ -114,17 +114,19 @@ public class AdbController {
         try {
             String line;
             p = Runtime.getRuntime().exec(cmd);
-            log.info("wait-"+cmd);
+            log.info("wait-" + cmd);
             p.waitFor();
             //log.info("-wait");
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-            while ((line = reader.readLine())!= null) {
+            while ((line = reader.readLine()) != null) {
                 log.debug(String.format("command line text is '%s'", line));
-                if(line.startsWith("unable to connect")){
+                if (line.startsWith("unable to connect")) {
                     log.error(line);
                 }
             }
+        } catch (IOException io){
+            saveAdb();
         } catch (Exception e) {
             log.error("Ошибка в процессе выполнения команды пользователя:", e);
         }

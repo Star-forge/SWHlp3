@@ -1,24 +1,12 @@
 package sw_client;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
 import java.util.stream.IntStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
 import static sw_client.Image.*;
 
 /**
@@ -64,23 +52,26 @@ public class MForm {
     }
 
     public MForm() {
+        log.debug("mform");
         stlog = this.tlog;
         wEnTF = this.waitEnergyTextField;
         form = this;
-
+        log.debug("start_stopButton");
         start_stopButton.addActionListener(e -> {
             startStop(null);
             log.debug("start_stopButton -> PAUSE = " + Configuration.PAUSE);
         });
-
+        log.debug("adbReconnectCheckBox");
         adbReconnectCheckBox.addActionListener(e -> {
             if(adbReconnectCheckBox.isSelected()) Configuration.RECONNECT = 600; else Configuration.RECONNECT = -1;
             log.debug("adbReconnectCheckBox -> " + Configuration.RECONNECT);
         });
+        log.debug("sellRunesCheckBox");
         sellRunesCheckBox.addActionListener(e -> {
             Configuration.SELL_ALL_RUNES = sellRunesCheckBox.isSelected();
             log.debug("sellRunesCheckBox -> " + Configuration.SELL_ALL_RUNES);
         });
+        log.debug("viewOnlyCheckBox");
         viewOnlyCheckBox.addActionListener(e -> {
             Configuration.VIEW_ONLY_MODE = viewOnlyCheckBox.isSelected();
             log.debug("viewOnlyCheckBox -> " + Configuration.VIEW_ONLY_MODE);
@@ -89,31 +80,37 @@ public class MForm {
             Configuration.BUY_ENERGY_AND_GO = buyEnergyCheckBox.isSelected();
             log.debug("buyEnergyCheckBox -> " + Configuration.BUY_ENERGY_AND_GO);
         });
+        log.debug("adbUsbButton");
         adbUsbButton.addActionListener(e -> {
             AdbController.runCommand(AdbController.adb_usb);
             log.debug("adbUsbButton -> click");
         });
+        log.debug("start_stopButton");
         adbTcpip5555Button.addActionListener(e -> {
             AdbController.runCommand(AdbController.tcpip);
             log.debug("adbTcpip5555Button -> click");
         });
+        log.debug("adbConnectIPButton");
         adbConnectIPButton.addActionListener(e -> {
             AdbController.runCommand(AdbController.adb_connect_ip+ipTextField.getText());
             log.debug("adbConnectIPButton -> click" + AdbController.adb_connect_ip+ipTextField.getText());
         });
+        log.debug("adbDevicesButton");
         adbDevicesButton.addActionListener(e -> {
             AdbController.runCommand(AdbController.adb_devices);
             log.debug("adbDevicesButton -> click");
         });
+        log.debug("adbDisconnectButton");
         adbDisconnectButton.addActionListener(e -> {
             AdbController.runCommand(AdbController.adb_disconnect);
             log.debug("adbDisconnectButton -> click");
         });
+        log.debug("other");
         tlog.addMouseListener(new MouseAdapter() {
         });
         report.addActionListener(e -> {
             String msg = JOptionPane.showInputDialog(null, "Пожалуйста, опишите какие действия привели к ошибке и как она проявляется.");
-            reportAdmin(msg);
+            Utils.reportAdmin(msg);
         });
     }
 
@@ -147,6 +144,7 @@ public class MForm {
         try{
             log.info("*** ЗАПУСК ПРОГРАММЫ ***");
             Configuration.loadParams();
+            log.debug("NetworkAdapter.initPath=>");
             NetworkAdapter.initPath();
 //            if(NetworkAdapter.checkNewVersion() && Configuration.UPDATE){
 //                JOptionPane.showMessageDialog(null,
@@ -155,14 +153,15 @@ public class MForm {
 //                Updater.update();
 //                System.exit(0);
 //            }
-
+            log.debug("Frame.setup=>");
             JFrame frame = new JFrame(Configuration.wndName);
             MForm form = new MForm();
             frame.setContentPane(form.mainPanel);
             frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
+            log.debug("Frame-elements.init=>");
             form.start_stopButton.setText(Configuration.PAUSE?"СТАРТ":"СТОП");
-            form.adbReconnectCheckBox.setSelected(Configuration.RECONNECT>0?true:false);
+            form.adbReconnectCheckBox.setSelected(Configuration.RECONNECT > 0);
             form.buyEnergyCheckBox.setSelected(Configuration.BUY_ENERGY_AND_GO);
             form.sellRunesCheckBox.setSelected(Configuration.SELL_ALL_RUNES);
             form.viewOnlyCheckBox.setSelected(Configuration.VIEW_ONLY_MODE);
@@ -195,9 +194,9 @@ public class MForm {
             String endDateTime;
             while (true) {
                 try {
-                    startDateTime = getDatetimeNowInPythonFormat();
+                    startDateTime = Utils.getDatetimeNowInPythonFormat();
                     mainFunction();
-                    endDateTime = getDatetimeNowInPythonFormat();
+                    endDateTime = Utils.getDatetimeNowInPythonFormat();
                     NetworkAdapter.sendStat(startDateTime, endDateTime, NetworkAdapter.callback);
                 } catch (ServerException e) {
                     log.error(e);
@@ -210,7 +209,7 @@ public class MForm {
             }
         } catch (Exception e) {
             log.error("Ошибка основной функции", e);
-            reportAdmin("Ошибка основной функции" + e.getMessage());
+            Utils.reportAdmin("Ошибка основной функции" + e.getMessage());
         }
     }
 
@@ -235,18 +234,11 @@ public class MForm {
         return update;
     }
 
-    // "2017-12-28 07:05:35.016424"
-    private static String getDatetimeNowInPythonFormat(){
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
-        Date date = new Date();
-        return dateFormat.format(date);
-    }
-
 
     private static void decrementMaxErrCount(){
         Configuration.maxErrCount--;
         if(Configuration.maxErrCount <= 0){
-            reportAdmin("Нестабильная работа.");
+            Utils.reportAdmin("Нестабильная работа.");
             JOptionPane.showMessageDialog(null, "Работа программы не стабильна.\n" +
                     "Сформируйте и отправьте разработчику отчет об ошибке.\n" +
                     "Отчет ('debug.zip') формируется в директории с логами (по-умолчанию: '"+Configuration.logsPath +"') после нажатия на кнопку 'report bug' .\n" +
@@ -261,51 +253,7 @@ public class MForm {
         Thread.sleep(Configuration.MAIN_TIMEOUT * 1000);
     }
 
-    private static void reportAdmin(String msg){
-        String targetPath = Configuration.logsPath + "\\debug.zip";
-        genZip(Configuration.logsPath, targetPath);
-        File zip = new File(targetPath);
-        if(zip.exists()) {
-            if (NetworkAdapter.reportBug(msg, zip)) {
-                JOptionPane.showMessageDialog(null, "Cообщение об ошибке отправлено!");
-            } else
-                JOptionPane.showMessageDialog(null, "Невозможно отправить сообщение об ошибке.\n" +
-                    "Вы можете самостоятельно переслать файл debug.zip, который лежит в папке '"+Configuration.logsPath +"'.");
-        } else JOptionPane.showMessageDialog(null, "Проблемы при создании отчета об ошибке.\n" +
-                "Пожалуйста, заархивируйте содержимое папки '" + Configuration.logsPath + "' и отправьте архив разработчику.");
-    }
 
-    private static void genZip(String sourcePath, String targetPath) {
-        byte[] buffer = new byte[1024];
-
-        try{
-            FileOutputStream fos = new FileOutputStream(targetPath);
-            ZipOutputStream zos = new ZipOutputStream(fos);
-
-            List<File> files = (List<File>) FileUtils.listFiles(new File(sourcePath), null, true);
-            for (File file : files) {
-                String filepath = file.getAbsolutePath();
-                String filename = file.getName();
-                if(filename.contains(".zip")) continue;
-                ZipEntry ze = new ZipEntry(filename);
-                zos.putNextEntry(ze);
-                FileInputStream in = new FileInputStream(filepath);
-                int len;
-                while ((len = in.read(buffer)) > 0) {
-                    zos.write(buffer, 0, len);
-                }
-                in.close();
-                zos.closeEntry();
-                log.debug("Отладочный файл {} добавлен", filename);
-            }
-            //remember close it
-            zos.close();
-            log.debug("Отладочная информация запакована");
-
-        }catch(IOException ex){
-            log.error("Не удалось создать архив с отладкой", ex);
-        }
-    }
 
     private final static String unauth  = "Unauthorized ";
     private final static String errMsg  = "Error!!";
@@ -397,11 +345,21 @@ public class MForm {
 
         if(Configuration.VIEW_ONLY_MODE) return;
 
+        // Добавление результата в список.
+        Utils.addResultToList(srvMsg);
+        if(Utils.isSameResultsLastNTimes(15) && srvMsg.equalsIgnoreCase(STAGE3)) {
+            Actions.clickAutoBtn();
+            toLog("--Click Autoplay button");
+            Utils.resultList.clear();
+        }
+        if(Utils.isSameResultsLastNTimes(30))
+            Utils.reportAdmin("Too many Same Results in Line");
+
         switch(srvMsg){
             case unauth: JOptionPane.showMessageDialog(null, "Вам необходимо запросить кодовое слово '"+Configuration.KEY+"' через форму на сайте программы."); startStop(true); break;
             case noMsg: throw new ServerException("Данные от сервера не получены.");
             case errMsg: throw new ServerException("Сервер сообщил об ошибке.");
-            case START:         startReaction(); break;
+            case START:         Actions.clickStartBtn(); break;
             case BOOT:          bootReaction(); break;
             case STAGE3:        bootReaction(); break;
             case BOSS:          bossReaction(); break;
@@ -421,10 +379,6 @@ public class MForm {
             case BUYENERGYOK:   buyEnergyOkReaction(); break;
             case ENERGYFULL:    energyFullReaction(); break;
         }
-    }
-
-    private static void startReaction() {
-        do_adb_tap(85, 70);
     }
 
     private static void bootReaction() {
@@ -466,18 +420,18 @@ public class MForm {
     private static void reviveReaction() {
         toLog("Воскрешения за кристаллы - НЕ будет.");
         toLog("Нажатие кнопки 'НЕТ'.");
-        do_adb_tap(65, 65);
+        Actions.clickRightNoBtn();
     }
 
     private static void loseOrVictoryReaction() throws InterruptedException {
-        do_adb_tap(50, 50);
-        do_adb_tap(10, 12);
+        Actions.clickCenter();
+        Actions.clickFreeSpace();
         Thread.sleep(tapTimeout);
-        do_adb_tap(50, 50);
+        Actions.clickCenter();
     }
 
     private static void victory2Reaction() {
-        do_adb_tap(50, 50);
+        Actions.clickCenter();
     }
 
     private static void noRuneReaction() {
@@ -544,7 +498,7 @@ public class MForm {
         }
     }
 
-    private static void do_adb_tap(int x, int y) {
+    static void do_adb_tap(int x, int y) {
         switch(Configuration.SCREEN_ROTATE){
             case 0:     do_adb_tap0(x,y);   break;
             case 90:    do_adb_tap90(x,y);  break;

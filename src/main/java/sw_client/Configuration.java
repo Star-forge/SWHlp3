@@ -25,6 +25,13 @@ public class Configuration {
     static Boolean             DEBUG = true;
     static int   WINDOW_X_COORDINATE = 0;
     static int   WINDOW_Y_COORDINATE = 0;
+    static int         SCREEN_ROTATE = 0;
+    static int         SCREEN_MOVE_X = 0;
+    static int         SCREEN_MOVE_Y = 0;
+    static int            MARGIN_TOP = 0;
+    static int          MARGIN_RIGHT = 0;
+    static int         MARGIN_BOTTOM = 0;
+    static int           MARGIN_LEFT = 0;
     static int    LONG_STAGE_TIMEOUT = 15;
     static int          BOSS_TIMEOUT = 10;
     static Boolean    SELL_ALL_RUNES = false;
@@ -33,21 +40,24 @@ public class Configuration {
     static int SLEEP_TIMEOUT_WITHOUT_ENERGY = 120;
     static String                KEY = getUserName();
     static int          MAIN_TIMEOUT = 1;
-    static int         SCREEN_ROTATE = 0;
 
     static Properties prop = new Properties();
     static final String PATH_CONFFILE = System.getProperty("user.dir") + "\\swhlp.properties";
 
     // Configuration (not user configurable)
-    static final int         VERSION = 308;
+    static final int         VERSION = 310;
     static String           USERNAME = "";
     static String           USERADDR = "";
     static boolean             PAUSE = false;
     static int           maxErrCount = 5;
+    static String            wndName = "SWSA HELPER v" + Configuration.VERSION;
 
     static String           logsPath = "logs";
 
     private static boolean bErrConfig = false;
+
+    // Utils.java
+    static final int maxResultListSize = 50;
 
     private static boolean containsCyrillic(String text){
         for(int i = 0; i < text.length(); i++) {
@@ -93,6 +103,13 @@ public class Configuration {
             DEBUG                       = Boolean.valueOf(getProperty("DEBUG", DEBUG));
             WINDOW_X_COORDINATE         = Integer.valueOf(getProperty("WINDOW_X_COORDINATE", WINDOW_X_COORDINATE));
             WINDOW_Y_COORDINATE         = Integer.valueOf(getProperty("WINDOW_Y_COORDINATE", WINDOW_Y_COORDINATE));
+            SCREEN_ROTATE               = Integer.valueOf(getProperty("SCREEN_ROTATE", SCREEN_ROTATE));
+            SCREEN_MOVE_X               = Integer.valueOf(getProperty("SCREEN_MOVE_X", SCREEN_MOVE_X));
+            SCREEN_MOVE_Y               = Integer.valueOf(getProperty("SCREEN_MOVE_Y", SCREEN_MOVE_Y));
+            MARGIN_TOP                  = Integer.valueOf(getProperty("MARGIN_TOP", MARGIN_TOP));
+            MARGIN_RIGHT                = Integer.valueOf(getProperty("MARGIN_RIGHT", MARGIN_RIGHT));
+            MARGIN_BOTTOM               = Integer.valueOf(getProperty("MARGIN_BOTTOM", MARGIN_BOTTOM));
+            MARGIN_LEFT                 = Integer.valueOf(getProperty("MARGIN_LEFT", MARGIN_LEFT));
             LONG_STAGE_TIMEOUT          = Integer.valueOf(getProperty("LONG_STAGE_TIMEOUT", LONG_STAGE_TIMEOUT));
             BOSS_TIMEOUT                = Integer.valueOf(getProperty("BOSS_TIMEOUT", BOSS_TIMEOUT));
             SELL_ALL_RUNES              = Boolean.valueOf(getProperty("SELL_ALL_RUNES", SELL_ALL_RUNES));
@@ -101,7 +118,6 @@ public class Configuration {
             SLEEP_TIMEOUT_WITHOUT_ENERGY = Integer.valueOf(getProperty("SLEEP_TIMEOUT_WITHOUT_ENERGY", SLEEP_TIMEOUT_WITHOUT_ENERGY));
             KEY                         = getProperty("KEY", getUserName());
             MAIN_TIMEOUT                = Integer.valueOf(getProperty("MAIN_TIMEOUT", MAIN_TIMEOUT));
-            SCREEN_ROTATE               = Integer.valueOf(getProperty("SCREEN_ROTATE", SCREEN_ROTATE));
             if(bErrConfig) {
                 writeConfig();
             }
@@ -135,6 +151,13 @@ public class Configuration {
         log.info(StringUtils.rightPad("DEBUG", strFillerLen, '.') + DEBUG);
         log.info(StringUtils.rightPad("WINDOW_X_COORDINATE", strFillerLen, '.') + WINDOW_X_COORDINATE);
         log.info(StringUtils.rightPad("WINDOW_Y_COORDINATE", strFillerLen, '.') + WINDOW_Y_COORDINATE);
+        log.info(StringUtils.rightPad("SCREEN_ROTATE", strFillerLen, '.') + SCREEN_ROTATE);
+        log.info(StringUtils.rightPad("SCREEN_MOVE_X", strFillerLen, '.') + SCREEN_MOVE_X);
+        log.info(StringUtils.rightPad("SCREEN_MOVE_Y", strFillerLen, '.') + SCREEN_MOVE_Y);
+        log.info(StringUtils.rightPad("MARGIN_TOP", strFillerLen, '.') + MARGIN_TOP);
+        log.info(StringUtils.rightPad("MARGIN_RIGHT", strFillerLen, '.') + MARGIN_RIGHT);
+        log.info(StringUtils.rightPad("MARGIN_BOTTOM", strFillerLen, '.') + MARGIN_BOTTOM);
+        log.info(StringUtils.rightPad("MARGIN_LEFT", strFillerLen, '.') + MARGIN_LEFT);
         log.info(StringUtils.rightPad("LONG_STAGE_TIMEOUT", strFillerLen, '.') + LONG_STAGE_TIMEOUT);
         log.info(StringUtils.rightPad("BOSS_TIMEOUT", strFillerLen, '.') + BOSS_TIMEOUT);
         log.info(StringUtils.rightPad("SELL_ALL_RUNES", strFillerLen, '.') + SELL_ALL_RUNES);
@@ -146,7 +169,6 @@ public class Configuration {
         log.info(StringUtils.rightPad("", strFillerLen+5, '-'));
         log.info(StringUtils.rightPad("USERNAME", strFillerLen, '.') + USERNAME);
         log.info(StringUtils.rightPad("USERADDR", strFillerLen, '.') + USERADDR);
-        log.info(StringUtils.rightPad("SCREEN_ROTATE", strFillerLen, '.') + SCREEN_ROTATE);
     }
 
     static boolean writeConfig(){
@@ -173,8 +195,9 @@ public class Configuration {
                     "\nADB_MODE=" +   String.valueOf(ADB_MODE) +
                     "\n" +
                     "\n#***ГЛОБАЛЬНЫЕ НАСТРОЙКИ ПРОГРАММЫ***" +
-                    "\n#Обновлять клиент (при запуске):" +
+                    "\n#Обновлять клиент (при завершении работы):" +
                     "\nUPDATE=" + String.valueOf(UPDATE) +
+                    "\n#Сохранение отладочной информации:" +
                     "\nDEBUG=" + String.valueOf(DEBUG) +
                     "\n#Перемещать окно на координату Х при запуске:" +
                     "\nWINDOW_X_COORDINATE=" + String.valueOf(WINDOW_X_COORDINATE) +
@@ -182,6 +205,18 @@ public class Configuration {
                     "\nWINDOW_Y_COORDINATE=" + String.valueOf(WINDOW_Y_COORDINATE) +
                     "\n#Угол поворота экрана (необходим, если изображения приходят с устройства повернутые на 90, 180 или 270 градусов):" +
                     "\nSCREEN_ROTATE=" + String.valueOf(SCREEN_ROTATE) +
+                    "\n#Смещение скрина на координату Х:" +
+                    "\nSCREEN_MOVE_X=" + String.valueOf(SCREEN_MOVE_X) +
+                    "\n#Смещение скрина на координату Y:" +
+                    "\nSCREEN_MOVE_Y=" + String.valueOf(SCREEN_MOVE_Y) +
+                    "\n#Смещение верхней границы экрана:" +
+                    "\nMARGIN_TOP=" + String.valueOf(MARGIN_TOP) +
+                    "\n#Смещение правой границы экрана:" +
+                    "\nMARGIN_RIGHT=" + String.valueOf(MARGIN_RIGHT) +
+                    "\n#Смещение нижней границы экрана:" +
+                    "\nMARGIN_BOTTOM=" + String.valueOf(MARGIN_BOTTOM) +
+                    "\n#Смещение левой границы экрана:" +
+                    "\nMARGIN_LEFT=" + String.valueOf(MARGIN_LEFT) +
                     "\n#Ваш идентификатор для доступа:" +
                     "\nKEY=" + String.valueOf(KEY) +
                     "\n" +

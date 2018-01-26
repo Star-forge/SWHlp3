@@ -1,5 +1,6 @@
 package sw_client;
 
+import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -8,13 +9,13 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by Starforge on 05.11.2017.
@@ -28,7 +29,6 @@ public class Image {
     public static final String resizedScrName = Configuration.logsPath + "//screenshot-resized.jpg";
     public static final String origScrName = Configuration.logsPath + "//screenshot-orig.jpg";
     private static final String scrPrevName = "screenshot.jpg.bak";
-
     private static int height;
     private static int width;
     private static BufferedImage image;
@@ -72,7 +72,8 @@ public class Image {
         g.setColor(Color.WHITE);
         g.drawLine(x, y, x, y);
         g.dispose();
-        ImageIO.write(result, "jpeg", new FileOutputStream(origScrName + "_" + imageNameSuffix + "_" + System.currentTimeMillis() + ".jpg"));
+        String fileName = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss.SSS'.jpg'").format(new Date());
+        ImageIO.write(result, "jpeg", new FileOutputStream(origScrName + "_" + imageNameSuffix + "_" + fileName));
     }
 
 
@@ -106,6 +107,14 @@ public class Image {
 
     public static String getPrevScrName() {
         return scrPrevName;
+    }
+
+    public static void setWidth(int width) {
+        Image.width = width;
+    }
+
+    public static void setHeight(int height) {
+        Image.height = height;
     }
 
     public static int getWidth() {

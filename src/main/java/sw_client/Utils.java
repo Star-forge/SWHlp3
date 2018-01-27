@@ -1,14 +1,14 @@
 package sw_client;
 
+import com.ibm.icu.text.Transliterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class Utils {
+class Utils {
     private static final Logger log = LogManager.getLogger("com.adbmanager.log4j2");
+    private static String CYRILLIC_TO_LATIN = "Cyrillic-Latin";
 
     static List<String> resultList = new ArrayList<>();
 
@@ -38,7 +39,7 @@ public class Utils {
         return list4check.size() == 0;
     }
 
-    static void genZip(String sourcePath, String targetPath) {
+    private static void genZip(String sourcePath, String targetPath) {
         byte[] buffer = new byte[1024];
 
         try{
@@ -70,18 +71,47 @@ public class Utils {
         }
     }
 
-    static void reportAdmin(String msg){
-        String targetPath = Configuration.logsPath + "\\debug.zip";
-        Utils.genZip(Configuration.logsPath, targetPath);
-        File zip = new File(targetPath);
-        if(zip.exists()) {
-            if (NetworkAdapter.reportBug(msg, zip)) {
-                JOptionPane.showMessageDialog(null, "Cообщение об ошибке отправлено!");
-            } else
-                JOptionPane.showMessageDialog(null, "Невозможно отправить сообщение об ошибке.\n" +
-                        "Вы можете самостоятельно переслать файл debug.zip, который лежит в папке '"+Configuration.logsPath +"'.");
-        } else JOptionPane.showMessageDialog(null, "Проблемы при создании отчета об ошибке.\n" +
-                "Пожалуйста, заархивируйте содержимое папки '" + Configuration.logsPath + "' и отправьте архив разработчику.");
+    private static boolean containsCyrillic(String text){
+        for(int i = 0; i < text.length(); i++) {
+            if(Character.UnicodeBlock.of(text.charAt(i)).equals(Character.UnicodeBlock.CYRILLIC))
+                return true;
+        }
+        return false;
+    }
+
+    static String transliterateStringIfNeeded(String cyrString){
+        if(Utils.containsCyrillic(cyrString)) {
+            Transliterator toLatinTrans = Transliterator.getInstance(CYRILLIC_TO_LATIN);
+            return toLatinTrans.transliterate(cyrString);
+        }
+        return cyrString;
+    }
+
+    private static void writeMsgToFile(String msg, String errMsgFileName) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(errMsgFileName));
+        writer.write(msg);
+        writer.close();
+    }
+
+    static void reportAdmin(String msg) {
+        try {
+            String targetPath = Configuration.logsPath + "\\debug.zip";
+            String errMsgFileName = Configuration.logsPath + "\\err_message.txt";
+            writeMsgToFile(msg, errMsgFileName);
+            Utils.genZip(Configuration.logsPath, targetPath);
+            Files.delete(Paths.get(errMsgFileName));
+            File zip = new File(targetPath);
+            if (zip.exists()) {
+                if (NetworkAdapter.reportBug(msg, zip)) {
+                    JOptionPane.showMessageDialog(null, "Cообщение об ошибке отправлено!");
+                } else
+                    JOptionPane.showMessageDialog(null, "Невозможно отправить сообщение об ошибке.\n" +
+                            "Вы можете самостоятельно переслать файл debug.zip, который лежит в папке '" + Configuration.logsPath + "'.");
+            } else JOptionPane.showMessageDialog(null, "Проблемы при создании отчета об ошибке.\n" +
+                    "Пожалуйста, заархивируйте содержимое папки '" + Configuration.logsPath + "' и отправьте архив разработчику.");
+        }catch (IOException io){
+            log.error(io);
+        }
     }
 
     // "2017-12-28 07:05:35.016424"

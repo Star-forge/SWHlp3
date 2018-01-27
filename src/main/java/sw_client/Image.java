@@ -113,6 +113,12 @@ public class Image {
         Image.width = width;
     }
 
+    static void changeImageSize(){
+        int tmp = Image.getHeight();
+        Image.setHeight(Image.getWidth());
+        Image.setWidth(tmp);
+    }
+
     public static void setHeight(int height) {
         Image.height = height;
     }

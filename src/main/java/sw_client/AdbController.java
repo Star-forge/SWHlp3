@@ -218,4 +218,19 @@ public class AdbController {
             }
         }).start();
     }
+
+    static boolean getScreenshotViaADB() {
+        MForm.toLog("*** Ожидание подключения к устройству");
+        try{
+            AdbController.runCmd("adb wait-for-device");
+            AdbController.runCmd("adb shell screencap -p /data/local/tmp/tmp.png");
+            AdbController.runCmd("adb pull /data/local/tmp/tmp.png screenshot.jpg");
+            AdbController.runCmd("adb shell rm /data/local/tmp/tmp.png");
+            MForm.toLog("*** Изображение получено");
+            return true;
+        }catch(Exception e){
+            log.info("***ERROR***", e);
+            return false;
+        }
+    }
 }

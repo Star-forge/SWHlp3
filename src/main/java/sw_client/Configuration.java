@@ -3,7 +3,6 @@ package sw_client;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import com.ibm.icu.text.Transliterator;
 import java.io.*;
 import java.util.Properties;
 
@@ -12,7 +11,6 @@ import java.util.Properties;
  */
 public class Configuration {
     private static final Logger log = LogManager.getLogger("com.adbmanager.log4j2");
-    public static String CYRILLIC_TO_LATIN = "Cyrillic-Latin";
 
     // Properties (user configurable)
     static int             RECONNECT = 600;
@@ -57,23 +55,12 @@ public class Configuration {
     private static boolean bErrConfig = false;
 
     // Utils.java
-    static final int maxResultListSize = 50;
+    final static int maxResultListSize = 50;
 
-    private static boolean containsCyrillic(String text){
-        for(int i = 0; i < text.length(); i++) {
-            if(Character.UnicodeBlock.of(text.charAt(i)).equals(Character.UnicodeBlock.CYRILLIC))
-                return true;
-        }
-        return false;
-    }
 
     private static String getUserName(){
         String username = System.getProperty("user.name");
-        if(containsCyrillic(username)) {
-            Transliterator toLatinTrans = Transliterator.getInstance(CYRILLIC_TO_LATIN);
-            username = toLatinTrans.transliterate(username);
-        }
-        return username;
+        return Utils.transliterateStringIfNeeded(username);
     }
 
     private static String getProperty(String key, Object default_value) throws IOException {

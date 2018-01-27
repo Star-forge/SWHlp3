@@ -109,7 +109,7 @@ class NetworkAdapter {
         }
     }
 
-    static String sendImage(String imageName) throws MForm.ServerException {
+    static String sendImage(String imageName) throws Core.ServerException {
         try {
 //            final byte[] bytes = IOUtils.toByteArray(new FileInputStream(imageName));
             log.debug("send image to srv ["+apiUrl2+"] via POST msg");
@@ -138,7 +138,7 @@ class NetworkAdapter {
             }
         }catch (Exception e) {
             log.error("Не удалось отправить изображение." +e.getMessage());
-            throw new MForm.ServerException("Не удалось отправить изображение." +e.getMessage());
+            throw new Core.ServerException("Не удалось отправить изображение." +e.getMessage());
         }
     }
 

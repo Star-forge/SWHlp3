@@ -71,7 +71,7 @@ class NetworkAdapter {
 
             return res.getStatusCode() == 200;
         }catch (Exception e) {
-            //log.error("Не удалось отправить отчёт." +e.getMessage());
+            log.error("Не удалось отправить отчёт." +e.getMessage());
             return false;
         }
     }

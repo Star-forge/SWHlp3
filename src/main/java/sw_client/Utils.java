@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.io.*;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -41,10 +42,12 @@ class Utils {
 
     private static void genZip(String sourcePath, String targetPath) {
         byte[] buffer = new byte[1024];
+        FileOutputStream fos;
+        ZipOutputStream zos;
 
         try{
-            FileOutputStream fos = new FileOutputStream(targetPath);
-            ZipOutputStream zos = new ZipOutputStream(fos);
+            fos = new FileOutputStream(targetPath);
+            zos = new ZipOutputStream(fos);
 
             List<File> files = (List<File>) FileUtils.listFiles(new File(sourcePath), null, true);
             for (File file : files) {
@@ -53,7 +56,8 @@ class Utils {
                 if(filename.contains(".zip")) continue;
                 ZipEntry ze = new ZipEntry(filename);
                 zos.putNextEntry(ze);
-                FileInputStream in = new FileInputStream(filepath);
+                FileInputStream in = null;
+                in = new FileInputStream(filepath);
                 int len;
                 while ((len = in.read(buffer)) > 0) {
                     zos.write(buffer, 0, len);
@@ -61,13 +65,22 @@ class Utils {
                 in.close();
                 zos.closeEntry();
                 log.debug("Отладочный файл {} добавлен", filename);
+                if(!filename.contains(".log"))
+                    deleteFile(file);
             }
             //remember close it
             zos.close();
             log.debug("Отладочная информация запакована");
-
-        }catch(IOException ex){
+        } catch(IOException ex){
             log.error("Не удалось создать архив с отладкой", ex);
+        }
+    }
+
+    private static void deleteFile(File file){
+        try{
+            Files.delete(file.toPath());
+        } catch(IOException fse) {
+            log.error("Не удалось удалить архив с отладкой", fse);
         }
     }
 
@@ -98,8 +111,10 @@ class Utils {
             String targetPath = Configuration.logsPath + "\\debug.zip";
             String errMsgFileName = Configuration.logsPath + "\\err_message.txt";
             writeMsgToFile(msg, errMsgFileName);
+            //MForm.startStop(true);
             Utils.genZip(Configuration.logsPath, targetPath);
-            Files.delete(Paths.get(errMsgFileName));
+            //MForm.startStop(false);
+            //Files.delete(Paths.get(errMsgFileName));
             File zip = new File(targetPath);
             if (zip.exists()) {
                 if (NetworkAdapter.reportBug(msg, zip)) {

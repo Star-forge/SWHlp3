@@ -112,20 +112,20 @@ class NetworkAdapter {
     static String sendImage(String imageName) throws Core.ServerException {
         try {
 //            final byte[] bytes = IOUtils.toByteArray(new FileInputStream(imageName));
+
             log.debug("send image to srv ["+apiUrl2+"] via POST msg");
-            Response res = given().
-                    formParam("user_name", Configuration.USERNAME).
-                    formParam("user_addr", Configuration.USERADDR).
-                    formParam("key", Configuration.KEY).
-                    formParam("client_version", Configuration.VERSION).
-                    formParam("msg", "image recognition").
-                    formParam("filename", "sw_screenshot").
-                    multiPart("file", new File(imageName), "image/jpg").
-                    //multiPart("file", "image.jpg", bytes, "image/jpg").
-                    post(apiUrl2);
+            Response res = given()
+                    .formParam("user_name", Configuration.USERNAME)
+                    .formParam("user_addr", Configuration.USERADDR)
+                    .formParam("key", Configuration.KEY)
+                    .formParam("client_version", Configuration.VERSION)
+                    .formParam("msg", "image recognition")
+                    .formParam("filename", "sw_screenshot")
+                    .multiPart("file", new File(imageName), "image/jpg")
+                    //.multiPart("file", "image.jpg", bytes, "image/jpg")
+                    .post(apiUrl2);
 
 //            final byte[] bytes = IOUtils.toByteArray(new FileInputStream(imageName));
-
             if(res.getStatusCode() == 200){
                 JsonPath jp = new JsonPath(res.asString());
                 callback = jp.get("callback_id");

@@ -3,6 +3,7 @@ package sw_client;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import javax.swing.*;
+import java.util.Date;
 import java.util.stream.IntStream;
 import static sw_client.Image.origScrName;
 import static sw_client.Image.resizedScrName;
@@ -10,6 +11,7 @@ import static sw_client.Image.rotatedScrName;
 
 class Core {
     private static final Logger log = LogManager.getLogger("com.adbmanager.log4j2");
+    public static Date lastOperationDate = new Date();
 
     private final static String unauth  = "Unauthorized ";
     private final static String errMsg  = "Error!!";
@@ -234,14 +236,13 @@ class Core {
     }
 
     static void mainFunction() throws Exception, Core.ServerException {
-
         //Image.delete();
         //AdbController.Image();
         while (Configuration.PAUSE) {
             Thread.sleep(500);
         }
 
-
+        lastOperationDate = new Date();
         while (!AdbController.getScreenshotViaADB()) {
             MForm.toLog("ERR Не удалось получить изображение по ADB.");
             Thread.sleep(1000);

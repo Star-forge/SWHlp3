@@ -6,6 +6,13 @@ import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 import static sw_client.Image.*;
 
 /**
@@ -125,10 +132,29 @@ public class MForm {
     private static void statusChecker(MForm form){
         Thread statusConnThread = new Thread(() -> {
             while (true) {
-                    AdbController.runCommand("adb devices", form);
-                    log.debug("run command 'adb devices' in run Thread");
+                AdbController.runCommand("adb devices", form);
+                log.debug("run command 'adb devices' in run Thread");
                 try {
                     Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        statusConnThread.setDaemon(true);
+        statusConnThread.start();
+    }
+
+    private static void programKeeper(){
+        Thread statusConnThread = new Thread(() -> {
+            while (true) {
+                log.debug("Проверка на предмет зависания программы.");
+                if(!Configuration.PAUSE && Utils.getDateDiff(new Date(), Core.lastOperationDate, TimeUnit.MINUTES) > 20) {
+                    log.error("Подозрение на зависание программы - рестарт!");
+                    restartApplication();
+                }
+                try {
+                    Thread.sleep(1000*60*10);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -186,6 +212,7 @@ public class MForm {
             toLog("*** Начало работы программы");
             AdbController.tryAdb();
             statusChecker(form);
+            programKeeper();
             NetworkAdapter.sendStat("", "", "");
             //Main Function
             String startDateTime;
@@ -233,5 +260,28 @@ public class MForm {
         stlog.append("\n"+text);
         stlog.setCaretPosition(stlog.getDocument().getLength());
         log.info(text);
+    }
+
+    private static void restartApplication() {
+        try {
+            final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+            final File currentJar = new File(MForm.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+
+            /* is it a jar file? */
+            if (!currentJar.getName().endsWith(".jar"))
+                return;
+
+            /* Build command: java -jar application.jar */
+            final ArrayList<String> command = new ArrayList<String>();
+            command.add(javaBin);
+            command.add("-jar");
+            command.add(currentJar.getPath());
+
+            final ProcessBuilder builder = new ProcessBuilder(command);
+            builder.start();
+            System.exit(0);
+        }catch(Exception e){
+            log.error(e);
+        }
     }
 }

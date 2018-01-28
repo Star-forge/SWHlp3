@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -136,6 +137,18 @@ class Utils {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    /**
+     * Get a diff between two dates
+     * @param date1 the oldest date
+     * @param date2 the newest date
+     * @param timeUnit the unit in which you want the diff
+     * @return the diff value, in the provided unit
+     */
+    public static long getDateDiff(Date date1, Date date2, TimeUnit timeUnit) {
+        long diffInMillies = date2.getTime() - date1.getTime();
+        return timeUnit.convert(diffInMillies,TimeUnit.MILLISECONDS);
     }
 
 }

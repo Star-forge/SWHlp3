@@ -43,7 +43,7 @@ public class Configuration {
     static final String PATH_CONFFILE = System.getProperty("user.dir") + "\\swhlp.properties";
 
     // Configuration (not user configurable)
-    static final int         VERSION = 320;
+    static final int         VERSION = 321;
     static String           USERNAME = "";
     static String           USERADDR = "";
     static boolean             PAUSE = false;

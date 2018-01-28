@@ -34,6 +34,9 @@ class Core {
     private final static String BUYENERGYOK = "19buy energy ok";
     private final static String ENERGYFULL  = "20energy full";
 
+    private final static String GAME    = "game";
+    private final static String NOGAME    = "nogame";
+
     private final static int tapTimeout  = 500;
     private static boolean supportFlag = false;
     
@@ -234,16 +237,16 @@ class Core {
 
         //Image.delete();
         //AdbController.Image();
-        while(Configuration.PAUSE){
+        while (Configuration.PAUSE) {
             Thread.sleep(500);
         }
 
 
-        while(!AdbController.getScreenshotViaADB()) {
+        while (!AdbController.getScreenshotViaADB()) {
             MForm.toLog("ERR Не удалось получить изображение по ADB.");
             Thread.sleep(1000);
         }
-        if(!Image.getReadFromFile()) return;
+        if (!Image.getReadFromFile()) return;
         Image.createCopy(origScrName);
 //        if(Image.getWidth() <= Image.getHeight() && (Configuration.SCREEN_ROTATE == 0 || Configuration.SCREEN_ROTATE == 180)) {
 //            JOptionPane.showMessageDialog(null, "Ваше устройство неправильно формирует изображение.\n" +
@@ -254,11 +257,11 @@ class Core {
 //            reportAdmin("rotated image");
 //        }
 
-        if(Image.getWidth() < Image.getHeight()) {
+        if (Image.getWidth() < Image.getHeight()) {
             Image.changeImageSize();
         }
 
-        if(Configuration.SCREEN_ROTATE != 0) {
+        if (Configuration.SCREEN_ROTATE != 0) {
             Image.rotate(Configuration.SCREEN_ROTATE);
             Image.createCopy(rotatedScrName);
         }
@@ -271,17 +274,23 @@ class Core {
         MForm.toLog("*** Получен ответ от сервера: " + srvMsg);
         Image.imageNameSuffix = srvMsg;
 
-        if(Configuration.VIEW_ONLY_MODE) return;
+        if (Configuration.VIEW_ONLY_MODE) return;
 
         // Добавление результата в список.
         Utils.addResultToList(srvMsg);
-        if(Utils.isSameResultsLastNTimes(15) && srvMsg.equalsIgnoreCase(Core.STAGE3)) {
+        if (Utils.isSameResultsLastNTimes(15) && srvMsg.equalsIgnoreCase(Core.STAGE3)) {
             Actions.clickAutoBtn();
             MForm.toLog("--Click Autoplay button");
             Utils.resultList.clear();
         }
-        if(Utils.isSameResultsLastNTimes(30))
+        if (Utils.isSameResultsLastNTimes(30)
+                && !srvMsg.equalsIgnoreCase(Core.unauth)
+                && !srvMsg.equalsIgnoreCase(Core.GAME)
+                && !srvMsg.equalsIgnoreCase(Core.NOGAME)) {
             Utils.reportAdmin(Utils.transliterateStringIfNeeded("Too many Same Results in Line"));
+            log.debug("*** Странное поведение программы - слишком много одинаковых оссбщений от сервера - Отправка BugReport");
+            Utils.resultList.clear();
+        }
 
         Core.doReaction(srvMsg);
     }

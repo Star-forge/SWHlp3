@@ -121,9 +121,11 @@ class Utils {
                     JOptionPane.showMessageDialog(null, "Cообщение об ошибке отправлено!");
                 } else
                     JOptionPane.showMessageDialog(null, "Невозможно отправить сообщение об ошибке.\n" +
-                            "Вы можете самостоятельно переслать файл debug.zip, который лежит в папке '" + Configuration.logsPath + "'.");
+                            "Вы можете самостоятельно переслать файл debug.zip, который лежит в папке '" + Configuration.logsPath + "'.\n" +
+                            "Для этого вам необходимо отписать о проблеме в группе VK - https://vk.com/swsahelper");
             } else JOptionPane.showMessageDialog(null, "Проблемы при создании отчета об ошибке.\n" +
-                    "Пожалуйста, заархивируйте содержимое папки '" + Configuration.logsPath + "' и отправьте архив разработчику.");
+                    "Пожалуйста, заархивируйте содержимое папки '" + Configuration.logsPath + "' и отправьте архив разработчику.\n" +
+                    "Для этого вам необходимо отписать о проблеме в группе VK - https://vk.com/swsahelper");
         }catch (IOException io){
             log.error(io);
         }
